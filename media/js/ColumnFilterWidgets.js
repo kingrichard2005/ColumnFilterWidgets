@@ -19,11 +19,11 @@
 
 (function($) {
 
-	if( $.fn.dataTable.fnVersionCheck( '1.10.0' )) {
-		$.fn.dataTableExt.oApi.fnGetColumnData = function( oSettings, iColumn ) {
-			return oSettings.oInstance.api().column( iColumn, { search: 'applied' } ).data().sort().unique();
-		}
-	} else {
+	//if( $.fn.dataTable.fnVersionCheck( '1.10.0' )) {
+		//$.fn.dataTableExt.oApi.fnGetColumnData = function( oSettings, iColumn ) {
+			//return oSettings.oInstance.api().column( iColumn, { search: 'applied' } ).data().sort().unique();
+		//}
+	//} else {
 		/*
 		 * Function: fnGetColumnData
 		 * Purpose:  Return an array of table values from a particular column.
@@ -76,7 +76,7 @@
 			
 			return asResultData;
 		};
-	}
+	//}
 
 	/**
 	* Add backslashes to regular expression symbols in a string.
@@ -99,13 +99,13 @@
 	* @param {object} oDataTableSettings Settings for the target table.
 	*/
 	var ColumnFilterWidgets = function( oDataTableSettings ) {
-		var me = this;
-		var sExcludeList = '';
+		var me              = this;
+		var sExcludeList    = '';
 		me.$WidgetContainer = $( '<div class="column-filter-widgets"></div>' );
-		me.$MenuContainer = me.$WidgetContainer;
-		me.$TermContainer = null;
-		me.aoWidgets = [];
-		me.sSeparator = '';
+		me.$MenuContainer   = me.$WidgetContainer;
+		me.$TermContainer   = null;
+		me.aoWidgets        = [];
+		me.sSeparator       = '';
 		if ( 'oColumnFilterWidgets' in oDataTableSettings.oInit ) {
 			if ( 'aiExclude' in oDataTableSettings.oInit.oColumnFilterWidgets ) {
 				sExcludeList = '|' + oDataTableSettings.oInit.oColumnFilterWidgets.aiExclude.join( '|' ) + '|';
@@ -161,14 +161,14 @@
 	* @param {object} widgets The ColumnFilterWidgets instance the widget is a member of.
 	*/
 	var ColumnFilterWidget = function( $Container, oDataTableSettings, i, widgets ) {
-		var widget = this, sTargetList;
-		widget.iColumn = i;
-		widget.oColumn = oDataTableSettings.aoColumns[i];
-		widget.$Container = $Container;
-		widget.oDataTable = oDataTableSettings.oInstance;
-		widget.asFilters = [];
-		widget.sSeparator = '';
-		widget.bSort = true;
+		var widget            = this, sTargetList;
+		widget.iColumn        = i;
+		widget.oColumn        = oDataTableSettings.aoColumns[i];
+		widget.$Container     = $Container;
+		widget.oDataTable     = oDataTableSettings.oInstance;
+		widget.asFilters      = [];
+		widget.sSeparator     = '';
+		widget.bSort          = true;
 		widget.iMaxSelections = -1;
 		if ( 'oColumnFilterWidgets' in oDataTableSettings.oInit ) {
 			if ( 'sSeparator' in oDataTableSettings.oInit.oColumnFilterWidgets ) {
@@ -194,7 +194,7 @@
 				// The blank option is a default, not a filter, and is re-selected after filtering
 				return;
 			}
-			sText = $( '<div>' + sSelected + '</div>' ).text();
+			sText     = $( '<div>' + sSelected + '</div>' ).text();
 			$TermLink = $( '<a class="filter-term" href="#"></a>' )
 				.addClass( 'filter-term-' + sText.toLowerCase().replace( /\W/g, '' ) )
 				.text( sText )
@@ -243,7 +243,7 @@
 	* @method fnFilter
 	*/
 	ColumnFilterWidget.prototype.fnFilter = function() {
-		var widget = this;
+		var widget           = this;
 		var asEscapedFilters = [];
 		var sFilterStart, sFilterEnd;
 		if ( widget.asFilters.length > 0 ) {
@@ -301,17 +301,16 @@
 		var aDistinctOptions = [];
 		var aData;
 		if ( widget.asFilters.length === 0 ) {
-			// Find distinct column values
-			aData = widget.oDataTable.fnGetColumnData( widget.iColumn );
-			$.each( aData, function( i, sValue ) {
-				var asValues = widget.sSeparator ? sValue.split( new RegExp( widget.sSeparator ) ) : [ sValue ];
-				$.each( asValues, function( j, sOption ) {
-					if ( !oDistinctOptions.hasOwnProperty( sOption ) ) {
-						oDistinctOptions[sOption] = true;
-						aDistinctOptions.push( sOption );
-					}
-				} );
-			} );
+			aData           = widget.oDataTable.fnGetColumnData( widget.iColumn );
+      // Map value options, use any separators to break out sub-values
+      aDistinctOptions = $.map( aData, function( sValue, i ) {
+        return widget.sSeparator ? sValue.split( new RegExp( widget.sSeparator ) ) : [ sValue ];
+      });
+      // Filter distinct column values
+      aDistinctOptions = aDistinctOptions.filter(function(elem, pos) {
+        if ( !oDistinctOptions.hasOwnProperty( elem ) ) { oDistinctOptions[elem] = true; };
+        return aDistinctOptions.indexOf(elem) == pos;
+      });
 			// Build the menu
 			widget.$Select.empty().append( $( '<option></option>' ).attr( 'value', '' ).text( widget.oColumn.sTitle ) );
 			$.each( aDistinctOptions, function( i, sOption ) {
