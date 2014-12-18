@@ -18,7 +18,8 @@
  */
 
 (function($) {
-
+   // Note: this doesn't seem to properly check the version number.
+   // e.g.  fnVersionCheck( '1.10.0' ) returns true even when using DataTables 1.9.4
 	//if( $.fn.dataTable.fnVersionCheck( '1.10.0' )) {
 		//$.fn.dataTableExt.oApi.fnGetColumnData = function( oSettings, iColumn ) {
 			//return oSettings.oInstance.api().column( iColumn, { search: 'applied' } ).data().sort().unique();
@@ -61,7 +62,7 @@
 			var asResultData = new Array();
 			
 			for (var i=0,c=aiRows.length; i<c; i++) {
-				var iRow = aiRows[i];
+				var iRow   = aiRows[i];
 				var sValue = this.fnGetData(iRow, iColumn);
 				
 				// ignore empty values?
@@ -120,10 +121,20 @@
 		$.each( oDataTableSettings.aoColumns, function ( i, oColumn ) {
 			var $WidgetElem = $( '<div class="column-filter-widget"></div>' );
 			if ( sExcludeList.indexOf( '|' + i + '|' ) < 0 ) {
-				me.aoWidgets.push( new ColumnFilterWidget( $WidgetElem, oDataTableSettings, i, me ) );
-				me.$MenuContainer.append( $WidgetElem );
+            // Update reference collection of widget array-objects
+            me.aoWidgets.push( new ColumnFilterWidget( $WidgetElem, oDataTableSettings, i, me ) );               
+            // Add column widget element to the $MenuContainer div container element
+            me.$MenuContainer.append( $WidgetElem );
+            
+            // TODO: Work-in-Progress, use a datatable as the filter entity instead of a selection list
+            createColumnFilterTableWidget( oDataTableSettings, i );
+
+            // Add the filter anchor for this column to the widget set
+            var anchEl = '<a id="col_' + i + '_filterButton" href="#col_' + i + '_filterButton">' + oDataTableSettings.aoColumns[i].sTitle + ' Filter</a>';
+            $WidgetElem.append(anchEl);
 			}
 		} );
+      
 		if ( me.$TermContainer ) {
 			me.$WidgetContainer.append( me.$MenuContainer );
 			me.$WidgetContainer.append( me.$TermContainer );
@@ -139,7 +150,7 @@
 
 		return me;
 	};
-
+   
 	/**
 	* Get the container node of the column filter widgets.
 	* 
@@ -149,7 +160,7 @@
 	ColumnFilterWidgets.prototype.getContainer = function() {
 		return this.$WidgetContainer.get( 0 );
 	}
-
+   
 	/**
 	* A filter widget based on data in a table column.
 	* 
@@ -253,7 +264,7 @@
 			} );
 			// This regular expression filters by either whole column values or an item in a comma list
 			sFilterStart = widget.sSeparator ? '(^|' + widget.sSeparator + ')(' : '^(';
-			sFilterEnd = widget.sSeparator ? ')(' + widget.sSeparator + '|$)' : ')$';
+			sFilterEnd   = widget.sSeparator ? ')(' + widget.sSeparator + '|$)' : ')$';
 			widget.oDataTable.fnFilter( sFilterStart + asEscapedFilters.join('|') + sFilterEnd, widget.iColumn, true, false );
 		} else { 
 			// Clear any filters for this column
@@ -271,8 +282,7 @@
 			$options = widget.$Select.find( 'option' ).slice( 1 );
 
 		function fnSort( a, b ) {
-			var a_text = $( a ).text(),
-				b_text = $( b ).text();
+			var a_text = $( a ).text(), b_text = $( b ).text();
 
 			if ( widget.hasOwnProperty( 'fnSort' ) ) {
 				return widget.fnSort( a_text, b_text );
@@ -291,7 +301,7 @@
 
 	/**
 	* On each table draw, update filter menu items as needed. This allows any process to
-	* update the table's column visiblity and menus will still be accurate.
+	* update the table's column visibility and menus will still be accurate.
 	* 
 	* @method fnDraw
 	*/
@@ -302,15 +312,17 @@
 		var aData;
 		if ( widget.asFilters.length === 0 ) {
 			aData           = widget.oDataTable.fnGetColumnData( widget.iColumn );
-      // Map value options, use any separators to break out sub-values
-      aDistinctOptions = $.map( aData, function( sValue, i ) {
-        return widget.sSeparator ? sValue.split( new RegExp( widget.sSeparator ) ) : [ sValue ];
-      });
-      // Filter distinct column values
-      aDistinctOptions = aDistinctOptions.filter(function(elem, pos) {
-        if ( !oDistinctOptions.hasOwnProperty( elem ) ) { oDistinctOptions[elem] = true; };
-        return aDistinctOptions.indexOf(elem) == pos;
-      });
+         // Map value options, use any separators to break out sub-values
+         aDistinctOptions = $.map( aData, function( sValue, i ) {
+           return widget.sSeparator ? sValue.split( new RegExp( widget.sSeparator ) ) : [ sValue ];
+         });
+         // Filter distinct column values
+         aDistinctOptions = aDistinctOptions.filter(function(elem, pos) {
+           if ( !oDistinctOptions.hasOwnProperty( elem ) ) {
+               oDistinctOptions[elem] = true;
+            }
+            return aDistinctOptions.indexOf(elem) == pos;
+         });
 			// Build the menu
 			widget.$Select.empty().append( $( '<option></option>' ).attr( 'value', '' ).text( widget.oColumn.sTitle ) );
 			$.each( aDistinctOptions, function( i, sOption ) {
