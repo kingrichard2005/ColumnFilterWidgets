@@ -15,17 +15,26 @@ $(document).ready( function () {
          // Click-handler for all checkbox elements in this column
          $('#' + this.id + ' input[class*="_filterCheckbox"]').click(function(){
             if( $(this).prop('checked') ) {
-               console.log('processs selection');
                // Filter based on this selection value
                var sSelected = $(this).closest('tr').children().last().text().trim();
                if ( sSelected === '' ) {
                   // The blank option is a default, not a filter, and is re-selected after filtering
                   return;
                }
-               // TODO
+               else{
+                  /* TODO: update this options parent filter table
+                     1) Select/Highlight this option in the filter datatable
+                     
+                     2) Collect all selected options from this filter table column
+                     
+                     3) Apply filter to target table
+                     
+                     4) Update other column filters to reflect options in filtered view of target table
+                  */
+               }
             }
             else {
-               console.log('processs un-selection');
+               // console.log('processs un-selection');
             }
          });
       },
@@ -44,4 +53,18 @@ $(document).ready( function () {
       // Open this filter dialog
       $('div[id="' + this.id.replace('_filterButton', '_filterDialog') + '"]').dialog( 'open' );
    });
+   
+   // Add handler to decorate filter table rows
+   // on de/select
+   $('table[id*="_filterTable"] tbody tr').click( function( e ) {
+      var oTable		= $(this).closest('table').dataTable()
+      if ( $(this).hasClass('row_selected') ) {
+         $(this).removeClass('row_selected');
+      }
+      else {
+         oTable.$('tr.row_selected').removeClass('row_selected');
+         $(this).addClass('row_selected');
+      }
+    });
+   
 } );

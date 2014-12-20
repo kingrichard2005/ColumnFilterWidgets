@@ -126,12 +126,11 @@
             // Add column widget element to the $MenuContainer div container element
             me.$MenuContainer.append( $WidgetElem );
             
-            // TODO: Work-in-Progress, use a datatable as the filter entity instead of a selection list
-            createColumnFilterTableWidget( oDataTableSettings, i );
+            // Add a datatable filter widget for this column
+            generateDomColumnFilterTableWidget( oDataTableSettings, i );
 
-            // Add the filter anchor for this column to the widget set
-            var anchEl = '<a id="col_' + i + '_filterButton" href="#col_' + i + '_filterButton">' + oDataTableSettings.aoColumns[i].sTitle + ' Filter</a>';
-            $WidgetElem.append(anchEl);
+            // Add an anchor trigger for the generated datatable filter
+            $WidgetElem.append( createFilterTriggerAnchor( oDataTableSettings, i ) );
 			}
 		} );
       
